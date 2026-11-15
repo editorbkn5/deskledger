@@ -76,7 +76,7 @@ final class Launcher: NSObject, NSApplicationDelegate {
 
     private func startCore() {
         let executable = Bundle.main.bundleURL.appendingPathComponent(
-            "Contents/Frameworks/DeskLedgerCore/deskledger-core")
+            "Contents/MacOS/deskledger-core")
         child.executableURL = executable
         child.arguments = ["--no-browser"] + arguments.filter { $0 != "--no-open-browser" }
         child.standardOutput = stream

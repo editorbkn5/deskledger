@@ -17,7 +17,7 @@ if [[ $arch != arm64 && $arch != x86_64 ]]; then
 fi
 
 export MACOSX_DEPLOYMENT_TARGET=15.0
-"$python_bin" -m PyInstaller --noconfirm --clean --onedir --console \
+"$python_bin" -m PyInstaller --noconfirm --clean --onefile --console \
   --name deskledger-core --target-architecture "$arch" --paths "$PWD" \
   --add-data "$PWD/deskledger/static:deskledger/static" \
   --workpath "$work/work" --specpath "$work" --distpath "$work/dist" \
@@ -25,9 +25,9 @@ export MACOSX_DEPLOYMENT_TARGET=15.0
 
 stage="$work/stage"
 bundle="$stage/DeskLedger.app"
-mkdir -p "$bundle/Contents/"{MacOS,Frameworks,Resources}
+mkdir -p "$bundle/Contents/"{MacOS,Resources}
 mkdir -p dist
-ditto "$work/dist/deskledger-core" "$bundle/Contents/Frameworks/DeskLedgerCore"
+install -m 755 "$work/dist/deskledger-core" "$bundle/Contents/MacOS/deskledger-core"
 cp packaging/macos/Info.plist "$bundle/Contents/Info.plist"
 cp LICENSE README.md "$bundle/Contents/Resources/"
 mkdir -p "$bundle/Contents/Resources/examples"
@@ -50,9 +50,10 @@ PY
 xcrun swiftc -swift-version 5 -O "packaging/macos/Launcher.swift" -o "$bundle/Contents/MacOS/DeskLedger"
 plutil -lint "$bundle/Contents/Info.plist"
 
-codesign --force --deep --sign - "$bundle"
+codesign --force --sign - "$bundle/Contents/MacOS/deskledger-core"
+codesign --force --sign - "$bundle"
 codesign --verify --deep --strict "$bundle"
-for executable in "$bundle/Contents/MacOS/DeskLedger" "$bundle/Contents/Frameworks/DeskLedgerCore/deskledger-core"; do
+for executable in "$bundle/Contents/MacOS/DeskLedger" "$bundle/Contents/MacOS/deskledger-core"; do
   [[ $(lipo -archs "$executable") == "$arch" ]]
 done
 

@@ -46,7 +46,7 @@ jobs:
           ditto "$mount/DeskLedger.app" "$installed"
           codesign --verify --strict --deep "$installed"
           python scripts/smoke.py --native-launcher "$installed/Contents/MacOS/DeskLedger"
-          export DESKLEDGER_EXECUTABLE="$installed/Contents/Frameworks/DeskLedgerCore/deskledger-core"
+          export DESKLEDGER_EXECUTABLE="$installed/Contents/MacOS/deskledger-core"
           BROWSER_ENGINE=chromium node --test tests/browser.cjs
           BROWSER_ENGINE=webkit node --test tests/browser.cjs
       - uses: actions/upload-artifact@v4
