@@ -1,0 +1,52 @@
+:root{color-scheme:light;--ink:#182e29;--quiet:#4a635d;--accent:#183e37;--edge:#d7e3dc;--paper:#fff;--back:#f3f7f4;font:16px/1.55 "Segoe UI",Tahoma,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--back);color:var(--ink)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default;opacity:.6}
+:focus-visible{outline:3px solid #167658;outline-offset:3px}
+#top{background:var(--accent);color:#fff;padding:1rem max(1rem,calc((100vw - 1160px)/2));display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.75rem}
+.brand strong{letter-spacing:.02em}
+.brand small{display:block;color:#deeee6;overflow-wrap:anywhere}
+.mark{display:grid;place-items:center;width:2.5rem;height:2.5rem;background:#d9f0dd;color:var(--accent);border-radius:.7rem;font-weight:750}
+nav,.actions{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}
+nav button{background:transparent;color:#fff;border-color:transparent}
+nav button:hover,nav button[aria-current]{background:#d9f0dd;color:var(--accent)}
+main{max-width:1160px;margin:auto;padding:clamp(.9rem,3vw,2rem)}
+h1,h2,h3,p{margin:.15rem 0 .8rem}
+h1{font-size:clamp(1.7rem,4vw,2.45rem);line-height:1.3}
+h2{font-size:1.2rem}
+.quiet{color:var(--quiet)}
+.card{background:var(--paper);border:1px solid var(--edge);border-radius:1rem;padding:clamp(.85rem,2.5vw,1.4rem);margin-block:.8rem;min-width:0}
+.grid,.metrics{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
+.split{display:grid;grid-template-columns:minmax(16rem,1fr) minmax(0,1.7fr);gap:1rem}
+.field{display:grid;gap:.25rem;margin-block-end:.7rem;min-width:0}
+input:not([type=checkbox]),select{width:100%;min-width:0;border:1px solid #8ba49b;border-radius:.55rem;padding:.55rem .65rem;background:#fff;color:var(--ink)}
+.check{display:flex;align-items:center;gap:.45rem}
+input[type=checkbox]{width:1.15rem;height:1.15rem;accent-color:var(--accent)}
+fieldset{min-width:0;border:1px solid var(--edge);border-radius:.6rem;margin:0 0 1rem;padding:.7rem}
+button{border:1px solid #a4bbb1;border-radius:.55rem;background:#fff;color:var(--accent);padding:.48rem .72rem;font-weight:650}
+.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:start;padding:.65rem;border-bottom:1px solid var(--edge);overflow-wrap:anywhere}
+th{color:var(--quiet);font-size:.88rem}
+.money,.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+.metric{border:1px solid var(--edge);border-radius:.7rem;padding:.7rem}
+.metric strong{display:block;font-size:1.2rem}
+.lines .line{display:grid;grid-template-columns:minmax(8rem,2fr) minmax(4rem,.75fr) minmax(7rem,1fr) auto;align-items:end;gap:.65rem;margin-bottom:.55rem}
+.line button{margin-bottom:.7rem}
+#notice:not(:empty){padding:.65rem;margin:.7rem 0;border-radius:.55rem;background:#e1f0e7}
+#notice[data-error=true]{background:#fae8e7;color:#782221}
+#invoice{background:#fff;border:1px solid var(--edge);border-radius:.8rem;margin-top:1rem;padding:1.2rem;overflow-wrap:anywhere}
+.skip{position:absolute;inset-inline-start:1rem;transform:translateY(-200%);background:white;padding:.45rem;z-index:2}
+.skip:focus{transform:translateY(0)}
+[hidden]{display:none!important}
+@media(max-width:720px){.split{grid-template-columns:minmax(0,1fr)}.lines .line{grid-template-columns:1fr 1fr}.line .field:first-child{grid-column:1/-1}.line button{justify-self:start}}
+@media print{body{background:#fff;color:#111}#top,#layout,.skip,.print-controls{display:none!important}main{padding:0;max-width:none}#invoice{border:0;padding:0;margin:0}tr{break-inside:avoid}thead{display:table-header-group}}
+.file-picker{position:relative;display:flex;align-items:center;gap:.65rem;overflow-wrap:anywhere;min-width:0;cursor:pointer}
+.file-button{display:inline-block;flex:none;border:1px solid #a4bbb1;border-radius:.55rem;color:var(--accent);padding:.48rem .72rem;font-weight:650}
+.file-picker input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-picker:focus-within .file-button{outline:3px solid #167658;outline-offset:3px}
+@page{size:auto;margin:14mm}

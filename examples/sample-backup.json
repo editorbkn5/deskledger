@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "customers": {
+    "10000000-0000-4000-8000-000000000001": {
+      "name": "Sample Customer",
+      "phone": "",
+      "email": "customer@example.invalid",
+      "notes": ""
+    }
+  },
+  "sales": {
+    "20000000-0000-4000-8000-000000000001": {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "day": "2026-07-03",
+      "customer_id": "10000000-0000-4000-8000-000000000001",
+      "items": [
+        {
+          "label": "Example service",
+          "qty": 2,
+          "price": 1250
+        }
+      ],
+      "total": 2500,
+      "redeem": 0,
+      "earned": 250,
+      "customer_name": "Sample Customer",
+      "invoice": 1,
+      "created": "2026-07-03T12:00:00+00:00",
+      "issuer": {
+        "brand": "Fictional Workshop",
+        "address": "Example City",
+        "contact": "training@example.invalid"
+      }
+    },
+    "20000000-0000-4000-8000-000000000002": {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "day": "2026-07-03",
+      "customer_id": null,
+      "items": [
+        {
+          "label": "Example service",
+          "qty": 2,
+          "price": 1250
+        }
+      ],
+      "total": 2500,
+      "redeem": 0,
+      "earned": 0,
+      "customer_name": "",
+      "invoice": 2,
+      "created": "2026-07-03T12:00:00+00:00",
+      "issuer": {
+        "brand": "Fictional Workshop",
+        "address": "Example City",
+        "contact": "training@example.invalid"
+      }
+    }
+  },
+  "settings": {
+    "lang": "en",
+    "brand": "Fictional Workshop",
+    "contact": "training@example.invalid",
+    "address": "Example City",
+    "currency": "USD",
+    "modules": {
+      "customers": true,
+      "sales": true,
+      "loyalty": true,
+      "reports": true
+    },
+    "reward": 10
+  }
+}
