@@ -40,7 +40,15 @@ final class Launcher: NSObject, NSApplicationDelegate {
         }
     }()
 
+    private func traceStartup(_ message: String) {
+        if arguments.contains("--no-open-browser") {
+            FileHandle.standardError.write(Data(("Mac launcher: " + message + "\n").utf8))
+        }
+    }
+
     func applicationDidFinishLaunching(_ event: Notification) {
+        traceStartup("application did finish launching")
+        startCore()
         let fileMenu = NSMenu()
         fileMenu.addItem(withTitle: strings.quit, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         let root = NSMenuItem()
@@ -70,8 +78,7 @@ final class Launcher: NSObject, NSApplicationDelegate {
         window.center()
         window.makeKeyAndOrderFront(nil)
         self.window = window
-        NSApp.activate(ignoringOtherApps: true)
-        startCore()
+        if !arguments.contains("--no-open-browser") { NSApp.activate(ignoringOtherApps: true) }
     }
 
     private func startCore() {
@@ -96,6 +103,7 @@ final class Launcher: NSObject, NSApplicationDelegate {
         }
         do {
             try child.run()
+            traceStartup("local server spawned")
         } catch {
             stream.fileHandleForReading.readabilityHandler = nil
             status.stringValue = strings.failed

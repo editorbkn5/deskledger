@@ -2,7 +2,7 @@
 import argparse
 import json
 from pathlib import Path
-from queue import Queue
+from queue import Empty, Queue
 import subprocess
 import sys
 import tempfile
@@ -25,7 +25,11 @@ def main():
             try:
                 lines = Queue(maxsize=1)
                 Thread(target=lambda: lines.put(app.stdout.readline()), daemon=True).start()
-                prefix, url = lines.get(timeout=20).strip().split(": ", 1)
+                try:
+                    line = lines.get(timeout=55 if args.native_launcher else 20)
+                except Empty as error:
+                    raise RuntimeError("The local launcher did not report a ready address.") from error
+                prefix, url = line.strip().split(": ", 1)
                 if prefix != "DeskLedger" or not url.startswith("http://127.0.0.1:"):
                     raise RuntimeError("Unexpected local launcher output.")
                 opener = build_opener(ProxyHandler({}))

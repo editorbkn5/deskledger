@@ -126,6 +126,12 @@ for (const [lang, values] of Object.entries(cases)) {
       await saleSubmit();
       assert.ok((await page.locator("#notice").innerText()).includes(values.wrongDate));
       await fill("day", values.date);
+      const localization = await page.evaluate(() => {
+        const input = document.querySelector("[name=day]").value;
+        return {input, parsed: parseDay(input, language), rendered: displayDay("2026-07-03", language),
+          parts: dateParts("2026-07-03", language)};
+      });
+      assert.equal(localization.parsed, "2026-07-03", JSON.stringify(localization));
       await page.locator("#add-line").click();
       await page.locator("[data-remove]").last().click();
       assert.equal(await page.locator(".line").count(), 1);
@@ -140,6 +146,7 @@ for (const [lang, values] of Object.entries(cases)) {
       });
       await saleSubmit();
       await page.locator("#notice[data-error=true]").waitFor();
+      assert.equal(await page.locator("#notice").innerText(), await page.evaluate(() => t("connection")));
       await saleSubmit();
       await page.locator("#invoice:not([hidden])").waitFor();
       assert.ok((await page.locator("#invoice").innerText()).includes(values.currency));
