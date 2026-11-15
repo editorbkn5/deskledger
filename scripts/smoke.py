@@ -1,6 +1,7 @@
 """Start an application archive and verify a clean, offline local launch."""
 import argparse
 import json
+import os
 from pathlib import Path
 from queue import Empty, Queue
 import subprocess
@@ -15,21 +16,39 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("app", type=Path)
     parser.add_argument("--python", type=Path, default=Path(sys.executable))
-    parser.add_argument("--native-launcher", action="store_true", help="Start the installed macOS app launcher.")
+    native = parser.add_mutually_exclusive_group()
+    native.add_argument("--native-launcher", action="store_true", help="Start the installed macOS app launcher.")
+    native.add_argument("--native-core", action="store_true", help="Start the packaged native server directly.")
     args = parser.parse_args()
     with tempfile.TemporaryDirectory() as folder:
         path = str(args.app.resolve())
-        command = [path, "--no-open-browser"] if args.native_launcher else [str(args.python.resolve()), path, "--no-browser"]
+        if args.native_launcher:
+            command = [path, "--no-open-browser"]
+        elif args.native_core:
+            command = [path, "--no-browser"]
+        else:
+            command = [str(args.python.resolve()), path, "--no-browser"]
         command += ["--data", str(Path(folder) / "profile" / "test.db")]
-        with subprocess.Popen(command, stdout=subprocess.PIPE, text=True, cwd=folder) as app:
+        with subprocess.Popen(command, stdout=subprocess.PIPE, cwd=folder) as app:
             try:
                 lines = Queue(maxsize=1)
-                Thread(target=lambda: lines.put(app.stdout.readline()), daemon=True).start()
+                read_fd = app.stdout.fileno()
+
+                def read_address():
+                    data = bytearray()
+                    while b"\n" not in data and len(data) < 4096:
+                        chunk = os.read(read_fd, 4096)
+                        if not chunk:
+                            break
+                        data.extend(chunk)
+                    lines.put(bytes(data).split(b"\n", 1)[0])
+
+                Thread(target=read_address, daemon=True).start()
                 try:
                     line = lines.get(timeout=55 if args.native_launcher else 20)
                 except Empty as error:
                     raise RuntimeError("The local launcher did not report a ready address.") from error
-                prefix, url = line.strip().split(": ", 1)
+                prefix, url = line.decode("utf-8").strip().split(": ", 1)
                 if prefix != "DeskLedger" or not url.startswith("http://127.0.0.1:"):
                     raise RuntimeError("Unexpected local launcher output.")
                 opener = build_opener(ProxyHandler({}))
