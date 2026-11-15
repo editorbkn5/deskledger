@@ -2,7 +2,6 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 import json
 from pathlib import Path
-import sqlite3
 import tempfile
 import unittest
 
@@ -158,7 +157,7 @@ class StoreTests(unittest.TestCase):
         legacy["version"] = 1
         del legacy["sales"][order()["id"]]["issuer"]
         self.assertEqual(validate_backup(legacy), before)
-        with sqlite3.connect(self.path) as db:
+        with self.store.transaction(write=True) as db:
             db.execute("UPDATE state SET body = ?", (json.dumps(legacy),))
         self.assertEqual(Store(self.path).get(), before)
 
@@ -166,11 +165,11 @@ class StoreTests(unittest.TestCase):
         original = self.snapshot()
         original["version"] = VERSION + 1
         encoded = json.dumps(original)
-        with sqlite3.connect(self.path) as db:
+        with self.store.transaction(write=True) as db:
             db.execute("UPDATE state SET body = ?", (encoded,))
         with self.assertRaisesRegex(Problem, "badVersion"):
             Store(self.path)
-        with sqlite3.connect(self.path) as db:
+        with self.store.transaction() as db:
             self.assertEqual(db.execute("SELECT body FROM state").fetchone()[0], encoded)
 
     def test_sample_backup_is_valid(self):
