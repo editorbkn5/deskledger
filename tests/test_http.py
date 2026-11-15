@@ -1,11 +1,13 @@
 from http.client import HTTPConnection
 import json
+import os
 from pathlib import Path
 import tempfile
 from threading import Thread
 import unittest
+from unittest.mock import patch
 
-from deskledger.server import create_server
+from deskledger.server import create_server, data_path
 from test_store import config
 
 
@@ -57,6 +59,25 @@ class HTTPTests(unittest.TestCase):
             self.assertEqual(self.request("POST", "/api/settings", payload, **headers)[0], 400)
         self.assertEqual(self.request("POST", "/api/unknown", "{}", **headers)[0], 404)
         self.assertEqual(self.request("GET", "/unknown")[0], 404)
+
+
+class ProfilePathTests(unittest.TestCase):
+    def test_mac_uses_application_support_and_preserves_legacy_profiles(self):
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            standard = home / "Library" / "Application Support" / "DeskLedger" / "deskledger.db"
+            legacy = home / ".local" / "share" / "DeskLedger" / "deskledger.db"
+            with patch("deskledger.server.sys.platform", "darwin"), \
+                 patch("deskledger.server.Path.home", return_value=home), patch.dict(os.environ, {"XDG_DATA_HOME": ""}):
+                self.assertEqual(data_path(), standard)
+                legacy.parent.mkdir(parents=True)
+                legacy.touch()
+                self.assertEqual(data_path(), legacy)
+                standard.parent.mkdir(parents=True)
+                standard.touch()
+                self.assertEqual(data_path(), standard)
+                with patch.dict(os.environ, {"XDG_DATA_HOME": str(home / "custom")}):
+                    self.assertEqual(data_path(), home / "custom" / "DeskLedger" / "deskledger.db")
 
 
 if __name__ == "__main__":

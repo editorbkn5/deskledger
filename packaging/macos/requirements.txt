@@ -1,0 +1,2 @@
+# Versioned build dependency. DeskLedger uses the bundled Python standard library at runtime.
+pyinstaller==6.18.0

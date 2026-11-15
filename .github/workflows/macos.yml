@@ -1,0 +1,54 @@
+name: DeskLedger for Mac
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 18
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: python -m unittest discover -s tests -v
+      - run: npm ci
+      - run: npm test
+      - run: python -m pip install -r packaging/macos/requirements.txt
+      - run: bash scripts/build_macos.sh
+      - run: npx playwright install chromium
+      - name: Install from the disk image, launch the Mac app, and test all three languages
+        shell: bash
+        run: |
+          set -euo pipefail
+          image=dist/DeskLedger-*-macOS-${{ matrix.arch }}.dmg
+          mount=$(mktemp -d)
+          installed="$RUNNER_TEMP/DeskLedger Install/DeskLedger.app"
+          hdiutil attach $image -nobrowse -readonly -mountpoint "$mount"
+          trap 'hdiutil detach "$mount" >/dev/null; rmdir "$mount"' EXIT
+          mkdir -p "$(dirname "$installed")"
+          ditto "$mount/DeskLedger.app" "$installed"
+          codesign --verify --strict --deep "$installed"
+          python scripts/smoke.py --native-launcher "$installed/Contents/MacOS/DeskLedger"
+          DESKLEDGER_EXECUTABLE="$installed/Contents/Frameworks/DeskLedgerCore/deskledger-core" node --test tests/browser.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DeskLedger-macOS-${{ matrix.arch }}
+          path: dist/DeskLedger-*-macOS-${{ matrix.arch }}.dmg
+          if-no-files-found: error

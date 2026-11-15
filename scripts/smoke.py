@@ -2,9 +2,11 @@
 import argparse
 import json
 from pathlib import Path
+from queue import Queue
 import subprocess
 import sys
 import tempfile
+from threading import Thread
 from urllib.parse import urldefrag
 from urllib.request import ProxyHandler, Request, build_opener
 
@@ -13,13 +15,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("app", type=Path)
     parser.add_argument("--python", type=Path, default=Path(sys.executable))
+    parser.add_argument("--native-launcher", action="store_true", help="Start the installed macOS app launcher.")
     args = parser.parse_args()
     with tempfile.TemporaryDirectory() as folder:
-        command = [str(args.python.resolve()), str(args.app.resolve()),
-                   "--data", str(Path(folder) / "profile" / "test.db"), "--no-browser"]
+        path = str(args.app.resolve())
+        command = [path, "--no-open-browser"] if args.native_launcher else [str(args.python.resolve()), path, "--no-browser"]
+        command += ["--data", str(Path(folder) / "profile" / "test.db")]
         with subprocess.Popen(command, stdout=subprocess.PIPE, text=True, cwd=folder) as app:
             try:
-                prefix, url = app.stdout.readline().strip().split(": ", 1)
+                lines = Queue(maxsize=1)
+                Thread(target=lambda: lines.put(app.stdout.readline()), daemon=True).start()
+                prefix, url = lines.get(timeout=20).strip().split(": ", 1)
                 if prefix != "DeskLedger" or not url.startswith("http://127.0.0.1:"):
                     raise RuntimeError("Unexpected local launcher output.")
                 opener = build_opener(ProxyHandler({}))
@@ -32,7 +38,13 @@ def main():
                     assert json.load(response) == {"state": None}
             finally:
                 app.terminate()
-                app.wait(timeout=10)
+                try:
+                    app.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    app.kill()
+                    raise
+            if args.native_launcher and app.returncode != 0:
+                raise RuntimeError(f"The Mac launcher exited with {app.returncode}.")
     print("Launcher, packaged assets and first-run database verified.")
 
 

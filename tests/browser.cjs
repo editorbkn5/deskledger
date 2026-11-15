@@ -21,8 +21,9 @@ const engine = process.env.BROWSER_ENGINE === "firefox" ? firefox : chromium;
 const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 
 async function start(file) {
-  const cli = process.env.DESKLEDGER_APP ? [process.env.DESKLEDGER_APP] : ["-m", "deskledger"];
-  const child = spawn(python, [...cli, "--data", file, "--no-browser"], {stdio: ["ignore", "pipe", "pipe"], windowsHide: true});
+  const executable = process.env.DESKLEDGER_EXECUTABLE;
+  const cli = executable ? [] : process.env.DESKLEDGER_APP ? [process.env.DESKLEDGER_APP] : ["-m", "deskledger"];
+  const child = spawn(executable || python, [...cli, "--data", file, "--no-browser"], {stdio: ["ignore", "pipe", "pipe"], windowsHide: true});
   const exit = once(child, "exit");
   let errors = "";
   child.stderr.on("data", chunk => { errors += chunk; });

@@ -98,8 +98,12 @@ def create_server(path, port=0):
 
 def data_path():
     home = Path.home()
-    if os.name == "nt":
+    if sys.platform == "win32":
         root = Path(os.environ.get("LOCALAPPDATA") or home / "AppData" / "Local")
+    elif sys.platform == "darwin" and not os.environ.get("XDG_DATA_HOME"):
+        standard = home / "Library" / "Application Support" / "DeskLedger" / "deskledger.db"
+        legacy = home / ".local" / "share" / "DeskLedger" / "deskledger.db"
+        return legacy if legacy.is_file() and not standard.exists() else standard
     else:
         root = Path(os.environ.get("XDG_DATA_HOME") or home / ".local" / "share")
     return root / "DeskLedger" / "deskledger.db"
