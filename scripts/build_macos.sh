@@ -19,7 +19,7 @@ fi
 export MACOSX_DEPLOYMENT_TARGET=15.0
 "$python_bin" -m PyInstaller --noconfirm --clean --onedir --console \
   --name deskledger-core --target-architecture "$arch" --paths "$PWD" \
-  --add-data "deskledger/static:deskledger/static" \
+  --add-data "$PWD/deskledger/static:deskledger/static" \
   --workpath "$work/work" --specpath "$work" --distpath "$work/dist" \
   "$PWD/packaging/macos/core.py"
 

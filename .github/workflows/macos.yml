@@ -32,7 +32,7 @@ jobs:
       - run: npm test
       - run: python -m pip install -r packaging/macos/requirements.txt
       - run: bash scripts/build_macos.sh
-      - run: npx playwright install chromium
+      - run: npx playwright install chromium webkit
       - name: Install from the disk image, launch the Mac app, and test all three languages
         shell: bash
         run: |
@@ -46,7 +46,9 @@ jobs:
           ditto "$mount/DeskLedger.app" "$installed"
           codesign --verify --strict --deep "$installed"
           python scripts/smoke.py --native-launcher "$installed/Contents/MacOS/DeskLedger"
-          DESKLEDGER_EXECUTABLE="$installed/Contents/Frameworks/DeskLedgerCore/deskledger-core" node --test tests/browser.cjs
+          export DESKLEDGER_EXECUTABLE="$installed/Contents/Frameworks/DeskLedgerCore/deskledger-core"
+          BROWSER_ENGINE=chromium node --test tests/browser.cjs
+          BROWSER_ENGINE=webkit node --test tests/browser.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: DeskLedger-macOS-${{ matrix.arch }}

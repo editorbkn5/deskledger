@@ -7,7 +7,7 @@ const {mkdtemp, readFile, rm} = require("node:fs/promises");
 const {tmpdir} = require("node:os");
 const {join} = require("node:path");
 const test = require("node:test");
-const {chromium, firefox} = require("playwright");
+const {chromium, firefox, webkit} = require("playwright");
 
 const cases = {
   en: {date: "2026/07/03", price: "19.95", reward: "10", qty: "2", spend: "1.00", brand: "Example Workshop", name: "Example Visitor", item: "Sample repair",
@@ -17,7 +17,7 @@ const cases = {
   ar: {date: "١٤٤٨/٠١/١٨", price: "١٩٫٩٥", reward: "١٠", qty: "٢", spend: "١٫٠٠", brand: "ورشة تجريبية", name: "عميل تجريبي", item: "خدمة تجريبية",
     dayLabel: "تاريخ البيع", currency: "دولار أمريكي", required: "أكمل هذا الحقل.", wrongDate: "أدخل تاريخًا صالحًا", walkin: "عميل عابر", restored: "تمت استعادة النسخة الاحتياطية."},
 };
-const engine = process.env.BROWSER_ENGINE === "firefox" ? firefox : chromium;
+const engine = {chromium, firefox, webkit}[process.env.BROWSER_ENGINE || "chromium"];
 const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
 
 async function start(file) {
