@@ -50,7 +50,7 @@ python -m pip install -r packaging/macos/requirements.txt
 PYTHON=python bash scripts/build_macos.sh
 ```
 
-Each Mac builds for its native architecture. The disk image includes the native launcher and the frozen Python runtime, so users do not need a separate Python installation. GitHub Actions builds both architectures, installs from the disk image, verifies the embedded server, and runs the three offline browser scenarios in Chromium and WebKit. The Apple Silicon job also verifies startup through the AppKit launcher.
+Each Mac builds for its native architecture. The disk image includes the native launcher and the frozen Python runtime, so users do not need a separate Python installation. GitHub Actions builds both architectures, installs from the disk image, and verifies sale retries, persistence and backup restore using the embedded server on both architectures. The Apple Silicon job also launches the AppKit window and runs the three offline browser scenarios in Chromium and WebKit.
 
 ## شروع سریع فارسی
 

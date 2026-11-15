@@ -32,10 +32,9 @@ jobs:
       - run: npm test
       - run: python -m pip install -r packaging/macos/requirements.txt
       - run: bash scripts/build_macos.sh
-      - run: npx playwright install chromium webkit
-      - name: Install from the disk image, launch the Mac app, and test all three languages
+      - name: Install from the disk image and verify the packaged runtime
         shell: bash
-        timeout-minutes: 7
+        timeout-minutes: 3
         run: |
           set -euo pipefail
           image=dist/DeskLedger-*-macOS-${{ matrix.arch }}.dmg
@@ -46,12 +45,17 @@ jobs:
           mkdir -p "$(dirname "$installed")"
           ditto "$mount/DeskLedger.app" "$installed"
           codesign --verify --strict --deep "$installed"
-          export DESKLEDGER_EXECUTABLE="$installed/Contents/MacOS/deskledger-core"
-          python scripts/smoke.py --native-core "$DESKLEDGER_EXECUTABLE"
-          # The Intel hosted runner can stall while presenting a native AppKit window.
-          if [[ ${{ matrix.arch }} == arm64 ]]; then
-            python scripts/smoke.py --native-launcher "$installed/Contents/MacOS/DeskLedger"
-          fi
+          python scripts/smoke.py --native-core --storage "$installed/Contents/MacOS/deskledger-core"
+          echo "DESKLEDGER_EXECUTABLE=$installed/Contents/MacOS/deskledger-core" >> "$GITHUB_ENV"
+      - name: Launch the native AppKit window
+        if: matrix.arch == 'arm64'
+        run: python scripts/smoke.py --native-launcher "${{ runner.temp }}/DeskLedger Install/DeskLedger.app/Contents/MacOS/DeskLedger"
+      - run: npx playwright install chromium webkit
+        if: matrix.arch == 'arm64'
+      - name: Run offline browser journeys in three languages
+        if: matrix.arch == 'arm64'
+        timeout-minutes: 6
+        run: |
           BROWSER_ENGINE=chromium node --test tests/browser.cjs
           BROWSER_ENGINE=webkit node --test tests/browser.cjs
       - uses: actions/upload-artifact@v4
