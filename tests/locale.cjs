@@ -29,6 +29,22 @@ test("round-trips the same dates across Gregorian, Solar Hijri and Umm al-Qura",
   assert.equal(parseDay("١٤٤٨/٠١/١٨", "ar"), "2026-07-03");
 });
 
+test("converts month names emitted by WebKit into numeric Umm al-Qura dates", () => {
+  const webkitIntl = {
+    NumberFormat: Intl.NumberFormat,
+    DateTimeFormat: function (locale, options) {
+      return new Intl.DateTimeFormat(locale, locale.startsWith("ar-") ? {...options, month: "long"} : options);
+    },
+  };
+  const intl = runInNewContext(source + "\n({displayDay, parseDay})", {Intl: webkitIntl});
+  for (const day of ["2026-07-03", "2026-07-29", "2026-08-28", "2026-09-26", "2026-10-26", "2026-11-25",
+    "2026-12-24", "2027-01-23", "2027-02-22", "2027-03-23", "2027-04-22", "2027-05-21"]) {
+    const expected = displayDay(day, "ar");
+    assert.equal(intl.displayDay(day, "ar"), expected);
+    assert.equal(intl.parseDay(expected, "ar"), day);
+  }
+});
+
 test("rejects nonexistent dates and unexpected formats", () => {
   assert.equal(parseDay("2025/02/29", "en"), null);
   assert.equal(parseDay("۱۴۰۴/۱۲/۳۰", "fa"), null);

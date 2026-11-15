@@ -113,9 +113,28 @@ function fromMoney(text, precision) {
   return Number.isSafeInteger(result) && result <= 1e12 ? result : NaN;
 }
 
+// The middle day of each Umm al-Qura month of 1448. WebKit may use
+// localized month names even when a numeric month is requested.
+const arabicMonthAnchors = [
+  "2026-06-30", "2026-07-29", "2026-08-28", "2026-09-26", "2026-10-26", "2026-11-25",
+  "2026-12-24", "2027-01-23", "2027-02-22", "2027-03-23", "2027-04-22", "2027-05-21",
+];
+let arabicMonthNumbers;
+
 function dateParts(day, language) {
   const formatter = new Intl.DateTimeFormat(locales[language], {year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC"});
-  const parts = Object.fromEntries(formatter.formatToParts(new Date(day + "T12:00:00Z")).map(p => [p.type, p.value]));
+  const atNoon = iso => new Date(iso + "T12:00:00Z");
+  const parts = Object.fromEntries(formatter.formatToParts(atNoon(day)).map(p => [p.type, p.value]));
+  if (language === "ar" && !/^\d+$/.test(normalizeDigits(parts.month))) {
+    if (!arabicMonthNumbers) {
+      const digits = new Intl.NumberFormat(locales.ar, {minimumIntegerDigits: 2, useGrouping: false});
+      arabicMonthNumbers = new Map(arabicMonthAnchors.map((iso, index) => {
+        const month = formatter.formatToParts(atNoon(iso)).find(part => part.type === "month").value;
+        return [month, digits.format(index + 1)];
+      }));
+    }
+    parts.month = arabicMonthNumbers.get(parts.month) || parts.month;
+  }
   return [parts.year, parts.month, parts.day];
 }
 
